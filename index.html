@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#2f9e44">
+<title>My DLP - Pruthvi Group</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f4f7f5;color:#1f2937}
+button,input,textarea,select{font:inherit}
+.header{background:linear-gradient(135deg,#238b45,#49b95f);color:white;padding:20px 16px 18px;border-radius:0 0 24px 24px;position:sticky;top:0;z-index:5}
+.header h1{margin:0;font-size:24px}.header p{margin:4px 0 0;opacity:.9;font-size:14px}
+.container{max-width:720px;margin:auto;padding:14px}
+.day-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px}.day-tabs button{border:0;background:white;border-radius:12px;padding:10px 14px;min-width:70px;box-shadow:0 2px 8px #0000000d;color:#374151}.day-tabs button.active{background:#2f9e44;color:#fff;font-weight:700}
+.info{background:#fff;border-radius:16px;padding:13px;margin-bottom:12px;box-shadow:0 2px 10px #0000000b}
+.info strong{display:block}.holiday{color:#b45309;background:#fff7ed}
+.card{background:#fff;border-radius:17px;padding:15px;margin:10px 0;box-shadow:0 2px 10px #0000000b;border-left:5px solid #74c69d}
+.card .time{font-size:12px;color:#6b7280;font-weight:700}.card h3{margin:5px 0;font-size:17px}.card .duration{font-size:12px;color:#6b7280}.card button{margin-top:10px;border:0;background:#e8f7ec;color:#237a3b;padding:9px 12px;border-radius:10px;font-weight:700}
+.saved{font-size:12px;color:#2f9e44;margin-left:7px}
+.overlay{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:flex-end}.overlay.show{display:flex}
+.modal{background:#fff;width:100%;max-width:720px;margin:auto 0 0;padding:18px;border-radius:22px 22px 0 0;max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 4px}.sub{font-size:13px;color:#6b7280;margin-bottom:15px}
+label{display:block;font-weight:700;font-size:13px;margin:12px 0 6px}
+input,textarea,select{width:100%;border:1px solid #d1d5db;border-radius:11px;padding:11px;background:#fff}textarea{min-height:82px;resize:vertical}
+.actions{display:flex;gap:10px;margin-top:18px}.actions button{flex:1;border:0;border-radius:12px;padding:12px;font-weight:700}.save{background:#2f9e44;color:#fff}.cancel{background:#eef1f0;color:#374151}.delete{background:#fee2e2;color:#b91c1c}
+.empty{padding:30px;text-align:center;color:#6b7280}
+.footer{text-align:center;color:#9ca3af;font-size:12px;padding:18px}
+@media(min-width:700px){.overlay{align-items:center}.modal{border-radius:22px;margin:auto}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="container">
+    <h1>📚 My DLP</h1>
+    <p>Pre-Primary • Pruthvi Group</p>
+  </div>
+</header>
+
+<main class="container">
+  <div class="info">
+    <strong>Daily Lesson Plan</strong>
+    <span style="font-size:13px;color:#6b7280">Tap any period to create or edit its DLP.</span>
+  </div>
+  <div id="days" class="day-tabs"></div>
+  <div id="holiday" class="info holiday" style="display:none"></div>
+  <section id="schedule"></section>
+  <div class="footer">DLP data is saved on this device.</div>
+</main>
+
+<div id="overlay" class="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">Create DLP</h2>
+    <div id="modalSub" class="sub"></div>
+    <form id="dlpForm">
+      <label>Topic</label><input id="topic" placeholder="e.g. Colours around us">
+      <label>Learning Objectives</label><textarea id="objectives" placeholder="What should children learn?"></textarea>
+      <label>Teaching / Learning Method</label><textarea id="method" placeholder="Story, demonstration, discussion, activity..."></textarea>
+      <label>Activity</label><textarea id="activity" placeholder="Describe the classroom activity"></textarea>
+      <label>Teaching Materials</label><textarea id="materials" placeholder="Flashcards, toys, worksheet, colours..."></textarea>
+      <label>Assessment</label><textarea id="assessment" placeholder="How will you check learning?"></textarea>
+      <label>Homework / Practice</label><textarea id="homework" placeholder="Optional"></textarea>
+      <div class="actions">
+        <button type="button" class="cancel" onclick="closeModal()">Cancel</button>
+        <button type="button" id="deleteBtn" class="delete" onclick="deleteDlp()">Delete</button>
+        <button type="submit" class="save">💾 Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const timetable = {
+Monday:[
+["8:30–9:30","Nature Walk / EVS • Circle Time, Assembly, Yoga","60 Min"],
+["9:30–10:15","Main Lesson – Language (Sanskrit – 15 Min)","45 Min"],
+["10:15–10:45","Fruit Break","30 Min"],
+["10:45–11:30","Handwork","45 Min"],
+["11:30–12:00","Maths & Sensory Activities","30 Min"],
+["12:00–12:40","Free Play / Indoor Play","40 Min"],
+["12:40–1:20","Lunch / Rest Time","40 Min"],
+["1:20–1:50","EVS","30 Min"],
+["1:50–2:30","Montessori Lab / Exploration Time","40 Min"]
+],
+Tuesday:[
+["8:30–9:30","Nature Walk / EVS • Circle Time, Assembly, Yoga","60 Min"],
+["9:30–10:15","Main Lesson – Language","45 Min"],
+["10:15–10:45","Fruit Break","30 Min"],
+["10:45–11:30","Clay Work","45 Min"],
+["11:30–12:00","Maths & Sensory Activities","30 Min"],
+["12:00–12:40","Free Play / Indoor Play","40 Min"],
+["12:40–1:20","Lunch / Rest Time","40 Min"],
+["1:20–1:50","Colouring","30 Min"],
+["1:50–2:30","Montessori Lab / Exploration Time","40 Min"]
+],
+Wednesday:[
+["8:30–9:30","Nature Walk / EVS • Circle Time, Assembly, Yoga","60 Min"],
+["9:30–10:15","Main Lesson – Language","45 Min"],
+["10:15–10:45","Fruit Break","30 Min"],
+["10:45–11:30","Wet-on-Wet Painting","45 Min"],
+["11:30–12:00","Maths & Sensory Activities","30 Min"],
+["12:00–12:40","Free Play / Indoor Play","40 Min"],
+["12:40–1:20","Lunch / Rest Time","40 Min"],
+["1:20–1:50","EVS","30 Min"],
+["1:50–2:30","Montessori Lab / Exploration Time","40 Min"]
+],
+Thursday:[
+["8:30–9:30","Circle Time, Assembly, Yoga, Shloka, Tongue Twisters","60 Min"],
+["9:30–10:15","Main Lesson – Language","45 Min"],
+["10:15–10:45","Fruit Break","30 Min"],
+["10:45–11:30","Value Education & Storytelling","45 Min"],
+["11:30–12:00","Maths & Sensory Activities","30 Min"],
+["12:00–12:40","Music","40 Min"],
+["12:40–1:20","Lunch / Rest Time","40 Min"],
+["1:20–1:50","Form Drawing","30 Min"],
+["1:50–2:30","Montessori Lab / Exploration Time","40 Min"]
+],
+Friday:[
+["8:30–9:30","Circle Time, Assembly, Yoga, Shloka, Tongue Twisters","60 Min"],
+["9:30–10:15","Main Lesson – Language","45 Min"],
+["10:15–10:45","Fruit Break","30 Min"],
+["10:45–11:30","Value Education & Storytelling","45 Min"],
+["11:30–12:00","Maths & Sensory Activities","30 Min"],
+["12:00–12:40","Music","40 Min"],
+["12:40–1:20","Lunch / Rest Time","40 Min"],
+["1:20–1:50","EVS","30 Min"],
+["1:50–2:30","Montessori Lab / Exploration Time","40 Min"]
+],
+Saturday:[
+["8:30–9:30","Circle Time, Assembly, Yoga, Shloka, Tongue Twisters","60 Min"],
+["9:30–10:15","Main Lesson – Language","45 Min"],
+["10:15–10:45","Fruit Break","30 Min"],
+["10:45–11:30","Value Education & Storytelling","45 Min"],
+["11:30–12:00","Free Play","30 Min"],
+["12:00–12:40","Art & Craft","40 Min"],
+["12:40–1:20","Lunch / Rest Time","40 Min"],
+["1:20–1:50","EVS","30 Min"],
+["1:50–2:30","Montessori Lab / Exploration Time","40 Min"]
+]
+};
+const days=Object.keys(timetable);
+let currentDay="Monday", currentIndex=null;
+const key=(d,i)=>`dlp_${d}_${i}`;
+const $=id=>document.getElementById(id);
+
+function renderDays(){
+  $("days").innerHTML=days.map(d=>`<button class="${d===currentDay?'active':''}" onclick="selectDay('${d}')">${d.slice(0,3)}</button>`).join("");
+}
+function selectDay(d){currentDay=d;renderDays();renderSchedule();}
+function renderSchedule(){
+  const isHoliday=currentDay==="Saturday";
+  $("holiday").style.display=isHoliday?"block":"none";
+  if(isHoliday)$("holiday").innerHTML="📌 <b>Saturday:</b> Every 1st and 3rd Saturday is a holiday. Use this screen for working Saturdays.";
+  $("schedule").innerHTML=timetable[currentDay].map((p,i)=>{
+    const saved=localStorage.getItem(key(currentDay,i));
+    return `<article class="card">
+      <div class="time">${p[0]} • ${p[2]}</div>
+      <h3>${p[1]}</h3>
+      <div><button onclick="openDlp(${i})">${saved?'✏️ Edit DLP':'＋ Create DLP'}</button>${saved?'<span class="saved">✓ Saved</span>':''}</div>
+    </article>`;
+  }).join("");
+}
+function openDlp(i){
+  currentIndex=i;
+  const p=timetable[currentDay][i], saved=JSON.parse(localStorage.getItem(key(currentDay,i))||"null")||{};
+  $("modalTitle").textContent=saved.topic?"Edit DLP":"Create DLP";
+  $("modalSub").textContent=`${currentDay} • ${p[0]} • ${p[1]}`;
+  ["topic","objectives","method","activity","materials","assessment","homework"].forEach(x=>$(x).value=saved[x]||"");
+  $("deleteBtn").style.display=saved.topic?"block":"none";
+  $("overlay").classList.add("show");
+}
+function closeModal(){$("overlay").classList.remove("show")}
+$("dlpForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const data={};
+  ["topic","objectives","method","activity","materials","assessment","homework"].forEach(x=>data[x]=$(x).value.trim());
+  if(!data.topic){alert("Please enter a topic.");return}
+  localStorage.setItem(key(currentDay,currentIndex),JSON.stringify(data));
+  closeModal();renderSchedule();
+});
+function deleteDlp(){
+  if(confirm("Delete this DLP?")){localStorage.removeItem(key(currentDay,currentIndex));closeModal();renderSchedule();}
+}
+$("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeModal()});
+renderDays();renderSchedule();
+</script>
+</body>
+</html>
